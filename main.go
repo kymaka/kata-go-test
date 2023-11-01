@@ -10,6 +10,14 @@ import (
 	"strings"
 )
 
+type NumberType int
+
+const (
+	arabic = iota
+	roman
+	wrong
+)
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -17,27 +25,45 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		a := parseRomanNumber(fields[0])
-		b := parseRomanNumber(fields[2])
-		if a == 0 && b == 0 {
+
+		numType, err := getNumbersType(fields[0], fields[2])
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		operator := fields[1]
+		if numType == arabic {
 			a := parseNumber(fields[0])
 			b := parseNumber(fields[2])
-			result, err := calculate(fields[1], a, b)
+			result, err := calculate(operator, a, b)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			fmt.Println(result)
-		} else if a != 0 && b != 0 {
-			result, err := calculate(fields[1], a, b)
+		} else if numType == roman {
+			a := parseRomanNumber(fields[0])
+			b := parseRomanNumber(fields[2])
+			result, err := calculate(operator, a, b)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			fmt.Println(result)
-		} else {
-			log.Fatal("Error! Mismatched types.")
 		}
+	}
+}
+
+func getNumbersType(a string, b string) (NumberType, error) {
+	first := parseRomanNumber(a)
+	second := parseRomanNumber(b)
+
+	if first == 0 && second == 0 {
+		return arabic, nil
+	} else if first != 0 && second != 0 {
+		return roman, nil
+	} else {
+		return wrong, errors.New("mismatched types")
 	}
 }
 
@@ -98,9 +124,9 @@ func parseRomanNumber(num string) int {
 	return 0
 }
 
-func calculate(oper string, a int, b int) (int, error) {
+func calculate(operator string, a int, b int) (int, error) {
 	var result int
-	switch oper {
+	switch operator {
 	case "+":
 		result = a + b
 	case "-":
