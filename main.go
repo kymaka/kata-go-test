@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-var isRoman bool
-
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -19,14 +17,27 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		a := parseNumber(fields[0])
-		b := parseNumber(fields[2])
-		result, err := calculate(fields[1], a, b)
-		if err != nil {
-			log.Fatal(err)
-		}
+		a := parseRomanNumber(fields[0])
+		b := parseRomanNumber(fields[2])
+		if a == 0 && b == 0 {
+			a := parseNumber(fields[0])
+			b := parseNumber(fields[2])
+			result, err := calculate(fields[1], a, b)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		fmt.Println(result)
+			fmt.Println(result)
+		} else if a != 0 && b != 0 {
+			result, err := calculate(fields[1], a, b)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(result)
+		} else {
+			log.Fatal("Error! Mismatched types.")
+		}
 	}
 }
 
@@ -53,18 +64,12 @@ func getInputAsTokens(reader *bufio.Reader) ([]string, error) {
 }
 
 func parseNumber(field string) int {
-	res := parseRomanNumber(field)
-	if res != 0 {
-		isRoman = true
+
+	num, err := strconv.Atoi(field)
+	if err != nil {
+		log.Fatal("Please enter valid number.", err)
 	}
-	if !isRoman {
-		num, err := strconv.Atoi(field)
-		if err != nil {
-			log.Fatal("Please enter valid number.", err)
-		}
-		return num
-	}
-	return res
+	return num
 }
 
 func parseRomanNumber(num string) int {
