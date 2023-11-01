@@ -13,9 +13,9 @@ import (
 type NumberType int
 
 const (
-	arabic = iota
-	roman
-	wrong
+	Arabic NumberType = iota
+	Roman
+	Wrong
 )
 
 func main() {
@@ -32,10 +32,10 @@ func main() {
 		}
 
 		operator := fields[1]
-		if numType == arabic {
-			a, errA := parseNumber(fields[0])
-			b, errB := parseNumber(fields[2])
-			if errA != nil || errB != nil {
+		switch numType {
+		case Arabic:
+			a, b, err := parseNumbers(fields[0], fields[2])
+			if err != nil {
 				log.Fatal(err)
 			}
 
@@ -45,13 +45,22 @@ func main() {
 			}
 
 			fmt.Println(result)
-		} else if numType == roman {
-			a, _ := parseRomanNumber(fields[0])
-			b, _ := parseRomanNumber(fields[2])
+		case Roman:
+			a, err := parseRomanNumber(fields[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			b, err := parseRomanNumber(fields[2])
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			result, err := calculate(operator, a, b)
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			if result <= 0 {
 				log.Fatal("roman number can't be zero or negative")
 			}
@@ -62,19 +71,18 @@ func main() {
 }
 
 func getNumbersType(a string, b string) (NumberType, error) {
-	first, errFirst := parseRomanNumber(a)
-	second, errSecond := parseRomanNumber(b)
-	if errFirst != nil || errSecond != nil {
-		return wrong, errors.New("illegal roman number is supplied")
+	_, errFirst := parseRomanNumber(a)
+	_, errSecond := parseRomanNumber(b)
+
+	if _, err := strconv.Atoi(a); err == nil {
+		return Arabic, nil
 	}
 
-	if first == 0 && second == 0 {
-		return arabic, nil
-	} else if first != 0 && second != 0 {
-		return roman, nil
-	} else {
-		return wrong, errors.New("mismatched types")
+	if errFirst != nil && errSecond != nil {
+		return Wrong, nil
 	}
+
+	return Roman, nil
 }
 
 func getInputAsTokens(reader *bufio.Reader) ([]string, error) {
@@ -86,12 +94,12 @@ func getInputAsTokens(reader *bufio.Reader) ([]string, error) {
 		a / b`
 
 	fmt.Println("Please enter an expression to calculate.")
-	line, err := reader.ReadString('\n') // Read string until enter is pressed.
+	line, err := reader.ReadString('\n')
 	if err != nil {
-		return []string{""}, errors.New("can't read line from input")
+		return nil, errors.New("can't read line from input")
 	}
 
-	fields := strings.Fields(line) // Get items separated by spaces.
+	fields := strings.Fields(line)
 	if len(fields) != 3 {
 		return nil, errors.New(expressionError)
 	}
@@ -99,40 +107,40 @@ func getInputAsTokens(reader *bufio.Reader) ([]string, error) {
 	return fields, nil
 }
 
-func parseNumber(field string) (int, error) {
-	num, err := strconv.Atoi(field)
-	if err != nil {
-		return num, err
+func parseNumbers(field1 string, field2 string) (int, int, error) {
+	a, errA := strconv.Atoi(field1)
+	b, errB := strconv.Atoi(field2)
+
+	if errA != nil || errB != nil {
+		return 0, 0, errors.New("invalid number format")
+	}
+	if a >= 1 && a <= 10 && b >= 1 && b <= 10 {
+		return a, b, nil
+	} else {
+		return a, b, errors.New("number is not correct")
 	}
 
-	return num, nil
 }
 
 func parseRomanNumber(num string) (int, error) {
-	switch num {
-	case "I":
-		return 1, nil
-	case "II":
-		return 2, nil
-	case "III":
-		return 3, nil
-	case "IV":
-		return 4, nil
-	case "V":
-		return 5, nil
-	case "VI":
-		return 6, nil
-	case "VII":
-		return 7, nil
-	case "VIII":
-		return 8, nil
-	case "IX":
-		return 9, nil
-	case "X":
-		return 10, nil
-	default:
-		return 0, errors.New("no allowed roman number is found")
+	romanNumerals := map[string]int{
+		"I":    1,
+		"II":   2,
+		"III":  3,
+		"IV":   4,
+		"V":    5,
+		"VI":   6,
+		"VII":  7,
+		"VIII": 8,
+		"IX":   9,
+		"X":    10,
 	}
+
+	if val, ok := romanNumerals[num]; ok {
+		return val, nil
+	}
+
+	return 0, errors.New("no allowed roman number is found")
 }
 
 func integerToRoman(number int) string {
@@ -168,18 +176,19 @@ func integerToRoman(number int) string {
 }
 
 func calculate(operator string, a int, b int) (int, error) {
-	var result int
 	switch operator {
 	case "+":
-		result = a + b
+		return a + b, nil
 	case "-":
-		result = a - b
+		return a - b, nil
 	case "*":
-		result = a * b
+		return a * b, nil
 	case "/":
-		result = a / b
+		if b == 0 {
+			return 0, errors.New("division by zero")
+		}
+		return a / b, nil
 	default:
-		return result, errors.New("bad operator")
+		return 0, errors.New("bad operator")
 	}
-	return result, nil
 }
