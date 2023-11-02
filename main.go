@@ -184,9 +184,6 @@ func calculate(operator string, a int, b int) (int, error) {
 	case "*":
 		return a * b, nil
 	case "/":
-		if b == 0 {
-			return 0, errors.New("division by zero")
-		}
 		return a / b, nil
 	default:
 		return 0, errors.New("bad operator")
