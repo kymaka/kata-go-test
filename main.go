@@ -74,9 +74,8 @@ func getNumbersType(a string, b string) (NumberType, error) {
 	_, errRFirst := parseRomanNumber(a)
 	_, errRSecond := parseRomanNumber(b)
 
-	_, errAFirst := strconv.Atoi(a)
-	_, errASecond := strconv.Atoi(b)
-	if errAFirst == nil && errASecond == nil {
+	_, _, err := parseNumbers(a, b)
+	if err == nil {
 		return Arabic, nil
 	}
 
