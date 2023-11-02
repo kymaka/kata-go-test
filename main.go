@@ -62,27 +62,29 @@ func main() {
 			}
 
 			if result <= 0 {
-				log.Fatal("roman number can't be zero or negative")
+				fmt.Println("roman number can't be zero or negative")
+			} else {
+				fmt.Println(integerToRoman(result))
 			}
-
-			fmt.Println(integerToRoman(result))
 		}
 	}
 }
 
 func getNumbersType(a string, b string) (NumberType, error) {
-	_, errFirst := parseRomanNumber(a)
-	_, errSecond := parseRomanNumber(b)
+	_, errRFirst := parseRomanNumber(a)
+	_, errRSecond := parseRomanNumber(b)
 
-	if _, err := strconv.Atoi(a); err == nil {
+	_, errAFirst := strconv.Atoi(a)
+	_, errASecond := strconv.Atoi(b)
+	if errAFirst == nil && errASecond == nil {
 		return Arabic, nil
 	}
 
-	if errFirst != nil && errSecond != nil {
-		return Wrong, nil
+	if errRFirst == nil && errRSecond == nil {
+		return Roman, nil
 	}
 
-	return Roman, nil
+	return Wrong, errors.New("bad input number")
 }
 
 func getInputAsTokens(reader *bufio.Reader) ([]string, error) {
