@@ -66,6 +66,8 @@ func main() {
 			} else {
 				fmt.Println(integerToRoman(result))
 			}
+		case Wrong:
+			log.Fatal("unexpected error")
 		}
 	}
 }
